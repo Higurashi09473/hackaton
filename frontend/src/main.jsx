@@ -4,14 +4,15 @@ import './index.css';
 
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Report from './components/Report';
-import App from './components/App';
+
+import SideBar from './components/SideBar';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path='/report' element={<Report />} />
-        <Route path='/' element={<App />} />
+        <Route path='/' element={<SideBar/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

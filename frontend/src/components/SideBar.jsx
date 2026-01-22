@@ -2,41 +2,34 @@ import { useState } from 'react'
 import Content from './Content'
 import Map from './Map/Map'
 
-import email from '../../public/email.svg'
-import phone from '../../public/phone.svg'
-import tg from '../../public/tg.svg'
-import user from '../../public/user.svg'
+import email from '../assets/email.svg'
+import phone from '../assets/phone.svg'
+import tg from '../assets/tg.svg'
+import logo from '../assets/icon.svg'
+import LoginModal from './Modal/LoginModal'
+import RequestModal from './Modal/RequestModal'
 
 export default function SideBar() {
     const [mapOpen, setMapOpen] = useState(false)
+    const [loginOpen, setLoginOpen] = useState(false)
+    const [requestOpen, setRequestOpen] = useState(false)
+    // onClick={() => setLoginOpen(true)}
     return (
         <div className="content">
             <div className="sidebar">
-                <div className="sidebar__login">
-                    <img src={user} alt="иконка пользователя" />
-                    <button className="btn">Войти</button>
+                <div className='sidebar__logowrap'>
+                    <img className='sidebar__logo' src={logo} alt="логотип" />
+                    <h1 className='sidebar__title'>Город решений</h1>
                 </div>
-                <button className='btn'
+                <div className='sidebar__btn'
                 onClick={() => setMapOpen(!mapOpen)}>
                     {mapOpen && 'Карта происшествий' || 'Статистика'}
-                </button>
-                <div className="sidebar__history">
-                    <ul className="sidebar__history-list">
-                        <li>1</li>
-                        <li>2</li>
-                        <li>3</li>
-                        <li>4</li>
-                        <li>5</li>
-                        <li>3</li>
-                        <li>4</li>
-                        <li>5</li>
-                        <li>3</li>
-                        <li>4</li>
-                        <li>5</li>
-                    </ul>
                 </div>
+                <div className='sidebar__btn'
+                onClick={() => setRequestOpen(true)}
+                >Оставить заявку</div>
                 <div className="sidebar__contacts">
-                    <h2>Контакты</h2>
+                    <h2 className='contacts__title'>Контакты</h2>
                     <ul className='sidebar__contacts-list'>
                         <li className='sidebar__contact'>
                             <img src={phone} alt="номер телефона" />
@@ -53,6 +46,16 @@ export default function SideBar() {
                     </ul>
                 </div>
             </div>
+            {loginOpen && (
+                <LoginModal
+                    onClose={() => setLoginOpen(false)}
+                />
+            )}
+            {requestOpen && (
+                <RequestModal
+                    onClose={() => setRequestOpen(false)}
+                />
+            )}
             {mapOpen && <Content /> || <Map/>}
         </div>
         
