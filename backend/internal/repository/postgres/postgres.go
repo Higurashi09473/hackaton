@@ -214,6 +214,70 @@ func (s *Storage) GetCategoriesAnalitic(ctx context.Context) (map[string]int, er
 	return analitic, nil
 }
 
+func (s *Storage) GetDistrictAnalitic(ctx context.Context) (map[string]int, error) {
+	const op = "storage.postgres.GetDistrictAnalitic"
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT 
+		district, COUNT(district)
+		FROM statements
+		GROUP BY district
+		`,
+	)	
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
+		}
+		return map[string]int{}, fmt.Errorf("%s: query: %w", op, err)
+	}
+
+	analitic := make(map[string]int)
+	for rows.Next() {
+		key, value := "", 0
+		
+		err := rows.Scan(&key,&value)
+		if err != nil {
+			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
+		}
+
+		analitic[key] = value
+	}
+
+	return analitic, nil
+}
+
+// func (s *Storage) GetPeriodAnalitic(ctx context.Context) (map[string]int, error) {
+// 	const op = "storage.postgres.GetPeriodAnalitic"
+
+// 	rows, err := s.db.QueryContext(ctx, `
+// 		SELECT 
+// 		category, COUNT(category)
+// 		FROM statements
+// 		GROUP BY category
+// 		`,
+// 	)	
+// 	if err != nil {
+// 		if errors.Is(err, sql.ErrNoRows) {
+// 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
+// 		}
+// 		return map[string]int{}, fmt.Errorf("%s: query: %w", op, err)
+// 	}
+
+// 	analitic := make(map[string]int)
+// 	for rows.Next() {
+// 		key, value := "", 0
+		
+// 		err := rows.Scan(&key,&value)
+// 		if err != nil {
+// 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
+// 		}
+
+// 		analitic[key] = value
+// 	}
+
+// 	return analitic, nil
+// }
+
 // Close closes the underlying database connection.
 // Should be called on application shutdown.
 func (s *Storage) Close() error {
