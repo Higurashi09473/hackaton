@@ -76,10 +76,11 @@ func main() {
 	router.Handle("/metrics", promhttp.Handler())
 
 	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
+	router.Get("/api/statement", handlers.GetAllStatements(log, orderUseCase))
+	router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))
 
-	router.Get("/api/statement", handlers.GetAllStatements(log, orderUseCase))
-	router.Get("/api/analitic/categories", handlers.GetCategoriesAnalitic(log, orderUseCase))
+	router.Get("/api/analitic/categories/{district}", handlers.GetCategoriesAnalitic(log, orderUseCase))
 	router.Get("/api/analitic/period", handlers.GetPeriodAnalitic(log, orderUseCase))
 	router.Get("/api/analitic/district", handlers.GetDistrictAnalitic(log, orderUseCase))
 
