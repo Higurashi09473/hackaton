@@ -3,4 +3,5 @@ deployments/docker/*
 backend/docker/grafana-data/*
 backend/docker/prometheus-data/*
 backend/docker/redis-data/*
-backend/docker/*
+backend/docker/kafka-data/*
+backend/docker/postgres-data/*
