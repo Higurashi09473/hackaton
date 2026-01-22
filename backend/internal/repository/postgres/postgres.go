@@ -70,13 +70,13 @@ func (s *Storage) NewStatement(statements []models.Statement) error {
 		return fmt.Errorf("%s: begin tx: %w", op, err)
 	}
 	defer tx.Rollback()
-	for _, stmt := range statements{
+	for _, stmt := range statements {
 		// Вставляем запись
 		_, err = tx.ExecContext(ctx, `
 		INSERT INTO statements (
 		source, district, category, subcategory,
-		created_at, status, description
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)
+		created_at, status, admin_status, description
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT DO NOTHING`,
 			stmt.Source,
 			stmt.District,
@@ -84,9 +84,10 @@ func (s *Storage) NewStatement(statements []models.Statement) error {
 			stmt.Subcategory,
 			stmt.CreatedAt,
 			stmt.Status,
+			stmt.AdminStatus,
 			stmt.Description,
 		)
-	
+
 		if err != nil {
 			return fmt.Errorf("%s: insert statement: %w", op, err)
 		}
@@ -153,7 +154,7 @@ func (s *Storage) GetAllStatements(ctx context.Context) ([]models.Statement, err
 		status,
 		description
 		FROM statements`,
-	)	
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []models.Statement{}, fmt.Errorf("%s: statements not found", op)
@@ -189,9 +190,10 @@ func (s *Storage) GetCategoriesAnalitic(ctx context.Context) (map[string]int, er
 		SELECT 
 		category, COUNT(category)
 		FROM statements
+		WHERE admin_status = false
 		GROUP BY category
 		`,
-	)	
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
@@ -202,8 +204,8 @@ func (s *Storage) GetCategoriesAnalitic(ctx context.Context) (map[string]int, er
 	analitic := make(map[string]int)
 	for rows.Next() {
 		key, value := "", 0
-		
-		err := rows.Scan(&key,&value)
+
+		err := rows.Scan(&key, &value)
 		if err != nil {
 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
 		}
@@ -221,9 +223,10 @@ func (s *Storage) GetDistrictAnalitic(ctx context.Context) (map[string]int, erro
 		SELECT 
 		district, COUNT(district)
 		FROM statements
+		WHERE admin_status = false
 		GROUP BY district
 		`,
-	)	
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
@@ -234,8 +237,8 @@ func (s *Storage) GetDistrictAnalitic(ctx context.Context) (map[string]int, erro
 	analitic := make(map[string]int)
 	for rows.Next() {
 		key, value := "", 0
-		
-		err := rows.Scan(&key,&value)
+
+		err := rows.Scan(&key, &value)
 		if err != nil {
 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
 		}
@@ -246,37 +249,37 @@ func (s *Storage) GetDistrictAnalitic(ctx context.Context) (map[string]int, erro
 	return analitic, nil
 }
 
-// func (s *Storage) GetPeriodAnalitic(ctx context.Context) (map[string]int, error) {
-// 	const op = "storage.postgres.GetPeriodAnalitic"
+func (s *Storage) GetPeriodAnalitic(ctx context.Context) (map[string]int, error) {
+	const op = "storage.postgres.GetPeriodAnalitic"
 
-// 	rows, err := s.db.QueryContext(ctx, `
-// 		SELECT 
-// 		category, COUNT(category)
-// 		FROM statements
-// 		GROUP BY category
-// 		`,
-// 	)	
-// 	if err != nil {
-// 		if errors.Is(err, sql.ErrNoRows) {
-// 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
-// 		}
-// 		return map[string]int{}, fmt.Errorf("%s: query: %w", op, err)
-// 	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT 
+		created_at, COUNT(created_at)
+		FROM statements
+		WHERE admin_status = false
+		GROUP BY created_at
+		`,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
+		}
+		return map[string]int{}, fmt.Errorf("%s: query: %w", op, err)
+	}
 
-// 	analitic := make(map[string]int)
-// 	for rows.Next() {
-// 		key, value := "", 0
-		
-// 		err := rows.Scan(&key,&value)
-// 		if err != nil {
-// 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
-// 		}
+	analitic := make(map[string]int)
+	for rows.Next() {
+		key, value := "", 0
 
-// 		analitic[key] = value
-// 	}
+		err := rows.Scan(&key, &value)
+		if err != nil {
+			return map[string]int{}, fmt.Errorf("%s: statements not found", op)
+		}
+		analitic[key] = value
+	}
 
-// 	return analitic, nil
-// }
+	return analitic, nil
+}
 
 // Close closes the underlying database connection.
 // Should be called on application shutdown.

@@ -147,25 +147,23 @@ func GetDistrictAnalitic(log *slog.Logger, statementUseCase *usecase.StatementUs
 	}
 }
 
+func GetPeriodAnalitic(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const op = "handlers.analitic.GetPeriodAnalitic"
 
+		log := log.With(
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
 
-// func GetPeriodAnalitic(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		const op = "handlers.analitic.GetPeriodAnalitic"
+		analitic, err := statementUseCase.GetPeriodAnalitic(context.Background())
+		if err != nil {
+			log.Error("failed to unmarshal statement", "op", op, "error", err)
+			render.JSON(w, r, resp.Error(err.Error()))
+			return
+		}
 
-// 		log := log.With(
-// 			slog.String("op", op),
-// 			slog.String("request_id", middleware.GetReqID(r.Context())),
-// 		)
-
-// 		analitic, err := statementUseCase.GetPeriodAnalitic(context.Background())
-// 		if err != nil {
-// 			log.Error("failed to unmarshal statement", "op", op, "error", err)
-// 			render.JSON(w, r, resp.Error(err.Error()))
-// 			return
-// 		}
-
-// 		log.Info("statement getting success")
-// 		render.JSON(w, r, analitic)
-// 	}
-// }
+		log.Info("statement getting success")
+		render.JSON(w, r, analitic)
+	}
+}

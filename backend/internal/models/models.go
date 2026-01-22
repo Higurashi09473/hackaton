@@ -8,5 +8,6 @@ type Statement struct {
 	Subcategory  string `json:"subcategory" validate:"required"`
 	CreatedAt    string `json:"created_at" validate:"required"`
 	Status       string `json:"status" validate:"required"`
+	AdminStatus  bool `json:"admin_status"`
 	Description  string `json:"description" validate:"required,min=10"`
 }

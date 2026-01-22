@@ -19,6 +19,7 @@ type StatementRepository interface {
 	GetAllStatements(ctx context.Context) ([]models.Statement, error)
 	GetCategoriesAnalitic(ctx context.Context) (map[string]int, error)
 	GetDistrictAnalitic(ctx context.Context) (map[string]int, error)
+	GetPeriodAnalitic(ctx context.Context) (map[string]int, error)
 }
 
 type CacheRepository interface {
@@ -138,17 +139,15 @@ func (uc *StatementUseCase) GetDistrictAnalitic(ctx context.Context) (map[string
 	return analitic, nil
 }
 
+func (uc *StatementUseCase) GetPeriodAnalitic(ctx context.Context) (map[string]int, error) {
+	const op = "usecase.GetPeriodAnalitic"
 
+	analitic, err := uc.statementRepo.GetPeriodAnalitic(ctx)
+	if err != nil {
+		return map[string]int{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
+	}
 
-// func (uc *StatementUseCase) GetPeriodAnalitic(ctx context.Context) (map[int]map[int]int, error) {
-// 	const op = "usecase.GetPeriodAnalitic"
-
-// 	analitic, err := uc.statementRepo.GetPeriodAnalitic(ctx)
-// 	if err != nil {
-// 		return map[int]map[int]int{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
-// 	}
-
-// 	return analitic, nil
-// }
+	return analitic, nil
+}
 
 
