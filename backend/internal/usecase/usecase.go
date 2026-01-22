@@ -16,8 +16,9 @@ import (
 type StatementRepository interface {
 	NewStatement(statements []models.Statement) error
 	GetStatement(statementID int) (models.Statement, error)
+	UpdateStatement(ctx context.Context, statements []models.Statement) error 
 	GetAllStatements(ctx context.Context) ([]models.Statement, error)
-	GetCategoriesAnalitic(ctx context.Context) (map[string]int, error)
+	GetCategoriesAnalitic(ctx context.Context, district string) (map[string]int, error)
 	GetDistrictAnalitic(ctx context.Context) (map[string]int, error)
 	GetPeriodAnalitic(ctx context.Context) (map[string]int, error)
 }
@@ -79,8 +80,24 @@ func (uc *StatementUseCase) CreateStatement(ctx context.Context, statements []mo
 	return nil
 }
 
-// GetOrder retrieves an order by UID, first checking cache, then database.
-// On successful DB fetch, it updates the cache.
+func (uc *StatementUseCase) UpdateStatement(ctx context.Context, statements []models.Statement) error {
+	const op = "usecase.UpdateStatement"
+
+	for _, statement := range statements {
+		if err := validator.ValidateStatement(&statement); err != nil {
+			return fmt.Errorf("%s: validator: %w", op, err)
+		}
+		uc.cacheRepo.DeleteStatement(ctx, statement.StatementUID)
+	}
+
+	if err := uc.statementRepo.UpdateStatement(ctx, statements); err != nil {
+		return fmt.Errorf("%s: failed to save statement to repository: %w", op, err)
+	}
+
+	return nil
+}
+
+
 func (uc *StatementUseCase) GetStatement(ctx context.Context, statementUID int) (models.Statement, error) {
 	const op = "usecase.GetStatement"
 
@@ -117,10 +134,10 @@ func (uc *StatementUseCase) GetAllStatements(ctx context.Context) ([]models.Stat
 	return statements, nil
 }
 
-func (uc *StatementUseCase) GetCategoriesAnalitic(ctx context.Context) (map[string]int, error) {
+func (uc *StatementUseCase) GetCategoriesAnalitic(ctx context.Context, district string) (map[string]int, error) {
 	const op = "usecase.GetStatement"
 
-	analitic, err := uc.statementRepo.GetCategoriesAnalitic(ctx)
+	analitic, err := uc.statementRepo.GetCategoriesAnalitic(ctx, district)
 	if err != nil {
 		return map[string]int{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
 	}

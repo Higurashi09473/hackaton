@@ -22,7 +22,7 @@ export default function Map({ onMapReady }) {  // Добавили prop для �
                 const geoRes = await fetch("/st-petersburg.geojson");
                 const geojson = await geoRes.json();
 
-                const analiticRes = await fetch("http://localhost:8888/api/analitic/district");
+                const analiticRes = await fetch("/api/analitic/district");
                 const analitic = await analiticRes.json();
 
                 const reverseMapping = {
@@ -213,26 +213,26 @@ export default function Map({ onMapReady }) {  // Добавили prop для �
                     property: "value",
                     weight: [
                         { propertyValue: 0, value: 0.1 },
-                        { propertyValue: 100, value: 1 }
+                        { propertyValue: 100, value: 0.5 }
                     ],
                     radius: [
-                        { propertyValue: 0, value: 20 },
-                        { propertyValue: 100, value: 100 }
+                        { propertyValue: 0, value: 100 },
+                        { propertyValue: 100, value: 500 }
                     ]
                 });
 
-                map.addLayer({
-                    id: "district-points-circle",
-                    type: "circle",
-                    source: "district-points",
-                    paint: {
-                        "circle-radius": ["interpolate", ["linear"], ["get", "value"], 0, 5, 100, 18],
-                        "circle-color": ["interpolate", ["linear"], ["get", "value"], 0, "#ffffb2", 100, "#b10026"],
-                        "circle-stroke-color": "#fff",
-                        "circle-stroke-width": 1,
-                        "circle-opacity": 0.95
-                    }
-                });
+                // map.addLayer({
+                //     id: "district-points-circle",
+                //     type: "circle",
+                //     source: "district-points",
+                //     paint: {
+                //         "circle-radius": ["interpolate", ["linear"], ["get", "value"], 0, 5, 100, 18],
+                //         "circle-color": ["interpolate", ["linear"], ["get", "value"], 0, "#ffffb2", 100, "#b10026"],
+                //         "circle-stroke-color": "#fff",
+                //         "circle-stroke-width": 1,
+                //         "circle-opacity": 0.95
+                //     }
+                // });
 
                 map.addLayer({
                     id: "district-points-labels",

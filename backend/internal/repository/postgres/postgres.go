@@ -116,6 +116,7 @@ func (s *Storage) GetStatement(id int) (models.Statement, error) {
 		subcategory,
 		created_at,
 		status,
+		admin_status,
 		description
 		FROM statements
 		WHERE id = $1`,
@@ -128,6 +129,7 @@ func (s *Storage) GetStatement(id int) (models.Statement, error) {
 		&stmt.Subcategory,
 		&stmt.CreatedAt,
 		&stmt.Status,
+		&stmt.AdminStatus,
 		&stmt.Description,
 	)
 	if err != nil {
@@ -138,6 +140,50 @@ func (s *Storage) GetStatement(id int) (models.Statement, error) {
 	}
 
 	return stmt, nil
+}
+
+func (s *Storage) UpdateStatement(ctx context.Context, statements []models.Statement) error {
+	const op = "storage.postgres.UpdateStatement"
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("%s: begin tx: %w", op, err)
+	}
+	defer tx.Rollback()
+	query := `
+		UPDATE statements
+		SET
+			source      = $1,
+			district    = $2,
+			category    = $3,
+			subcategory = $4,
+			status      = $5,
+			admin_status = $6,
+			description = $7
+		WHERE id = $8`
+	for _, stmt := range statements {
+		// Вставляем запись
+		_, err := s.db.ExecContext(ctx, query,
+			stmt.Source,
+			stmt.District,
+			stmt.Category,
+			stmt.Subcategory,
+			stmt.Status,
+			stmt.AdminStatus,
+			stmt.Description,
+			stmt.StatementUID,
+		)
+
+		if err != nil {
+			return fmt.Errorf("%s: insert statement: %w", op, err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("%s: commit: %w", op, err)
+	}
+
+	return nil
 }
 
 func (s *Storage) GetAllStatements(ctx context.Context) ([]models.Statement, error) {
@@ -183,17 +229,32 @@ func (s *Storage) GetAllStatements(ctx context.Context) ([]models.Statement, err
 	return statements, nil
 }
 
-func (s *Storage) GetCategoriesAnalitic(ctx context.Context) (map[string]int, error) {
+func (s *Storage) GetCategoriesAnalitic(ctx context.Context, district string) (map[string]int, error) {
 	const op = "storage.postgres.GetStatement"
 
-	rows, err := s.db.QueryContext(ctx, `
-		SELECT 
-		category, COUNT(category)
-		FROM statements
-		WHERE admin_status = false
-		GROUP BY category
-		`,
-	)
+	var query string
+
+	if district == "1"{
+		query = `
+			SELECT 
+			category, COUNT(category)
+			FROM statements
+			WHERE admin_status = false
+				AND district != $1	
+			GROUP BY category
+			`
+	} else{
+		query = `
+			SELECT 
+			category, COUNT(category)
+			FROM statements
+			WHERE admin_status = false
+				AND district = $1
+			GROUP BY category
+			`
+	}
+
+	rows, err := s.db.QueryContext(ctx,  query, district)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return map[string]int{}, fmt.Errorf("%s: statements not found", op)

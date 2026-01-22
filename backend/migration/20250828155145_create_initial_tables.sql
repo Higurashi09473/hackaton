@@ -7,7 +7,7 @@ CREATE TABLE statements (
     district            VARCHAR(100)        NOT NULL,            
     category            VARCHAR(80)         NOT NULL,           
     subcategory         VARCHAR(150)        NOT NULL,
-    created_at          VARCHAR(50)         NOT NULL,           
+    created_at          VARCHAR(50)         NOT NULL DEFAULT NOW(),           
     status              VARCHAR(50)         NOT NULL,
     admin_status        Boolean             NOT NULL DEFAULT true,          
     description         TEXT                NOT NULL

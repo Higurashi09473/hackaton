@@ -81,6 +81,36 @@ func GetStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCase) 
 	}
 }
 
+func UpdateStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const op = "handlers.statement.NewStatement"
+
+		ctx := r.Context()
+
+		var statements []models.Statement
+
+		log := log.With(
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
+
+		if err := render.DecodeJSON(r.Body, &statements); err != nil {
+			log.Error("failed to unmarshal orstatementder", "op", op, "error", err)
+			render.JSON(w, r, resp.Error(err.Error()))
+			return
+		}
+
+		if err := statementUseCase.UpdateStatement(ctx, statements); err != nil {
+			log.Error("failed create statement", "op", op, "error", err)
+			render.JSON(w, r, resp.Error(err.Error()))
+			return
+		}
+
+		log.Info("statement updating success")
+		render.JSON(w, r, resp.OK())
+	}
+}
+
 func GetAllStatements(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.statement.GetAllStatements"
@@ -113,7 +143,13 @@ func GetCategoriesAnalitic(log *slog.Logger, statementUseCase *usecase.Statement
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		analitic, err := statementUseCase.GetCategoriesAnalitic(context.Background())
+		district := chi.URLParam(r, "district")
+		if district == "" {
+			http.Error(w, "id parameter missing", http.StatusBadRequest)
+			return
+		}
+
+		analitic, err := statementUseCase.GetCategoriesAnalitic(context.Background(), district)
 		if err != nil {
 			log.Error("failed to unmarshal statement", "op", op, "error", err)
 			render.JSON(w, r, resp.Error(err.Error()))
