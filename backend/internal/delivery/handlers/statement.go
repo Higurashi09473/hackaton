@@ -32,7 +32,7 @@ func NewStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCase) 
 		)
 
 		if err := render.DecodeJSON(r.Body, &statements); err != nil {
-			log.Error("failed to unmarshal orstatementder", "op", op, "error", err)
+			log.Error("failed to unmarshal statement", "op", op, "error", err)
 			render.JSON(w, r, resp.Error(err.Error()))
 			return
 		}
@@ -160,7 +160,6 @@ func GetCategoriesAnalitic(log *slog.Logger, statementUseCase *usecase.Statement
 		render.JSON(w, r, analitic)
 	}
 }
-
 
 func GetDistrictAnalitic(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
