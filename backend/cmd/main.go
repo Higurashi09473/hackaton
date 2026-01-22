@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"errors"
 	"hack/internal/config"
 	"hack/internal/delivery/handlers"
 	mwLogger "hack/internal/delivery/middleware/logger"
@@ -10,9 +13,6 @@ import (
 	"hack/internal/repository/postgres"
 	"hack/internal/repository/redis"
 	usecase "hack/internal/usecase"
-	"context"
-	"database/sql"
-	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -80,7 +80,7 @@ func main() {
 
 	router.Get("/api/statement", handlers.GetAllStatements(log, orderUseCase))
 	router.Get("/api/analitic/categories", handlers.GetCategoriesAnalitic(log, orderUseCase))
-	
+
 	srv := &http.Server{
 		Addr:         cfg.Address,
 		Handler:      router,
