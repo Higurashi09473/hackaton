@@ -136,6 +136,7 @@ func (uc *StatementUseCase) DeleteStatement(ctx context.Context, statementUID in
 	if err := uc.statementRepo.DeleteStatement(statementUID); err != nil {
 		return fmt.Errorf("%s: failed to delete statement (id=%d): %w", op, statementUID, err)
 	}
+	uc.cacheRepo.DeleteStatement(ctx, statementUID)
 
 	return nil
 }
@@ -219,6 +220,16 @@ func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([
 	const op = "usecase.GetRecomendations"
 	client := mistral.NewClient(os.Getenv("AI_API_KEY"))
 
+	result := []string{}
+
+	cached, err := uc.cacheRepo.GetStatement(ctx, -1)
+	if err == nil && len(cached) > 0 {
+		if jsonErr := json.Unmarshal(cached, &result); jsonErr == nil {
+			return result, nil
+		}
+		uc.cacheRepo.DeleteStatement(ctx, -1)
+	}
+
 	statementsContext, err := uc.statementRepo.GetRecomendatonsContext(ctx)
 	if err != nil {
 		return []string{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
@@ -245,9 +256,12 @@ func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([
 		return []string{}, nil
 	}
 
-	result := strings.Split(responseText, "|")
+	result = strings.Split(responseText, "|")
 	for i := range result {
 		result[i] = strings.TrimSpace(result[i])
+	}
+	if orderJSON, marshalErr := json.Marshal(result); marshalErr == nil {
+		uc.cacheRepo.SetStatement(ctx, -1, orderJSON, 1*time.Hour)
 	}
 
 	return result, nil
