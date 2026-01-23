@@ -32,7 +32,7 @@ func NewStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCase) 
 		)
 
 		if err := render.DecodeJSON(r.Body, &statements); err != nil {
-			log.Error("failed to unmarshal orstatementder", "op", op, "error", err)
+			log.Error("failed to unmarshal statement", "op", op, "error", err)
 			render.JSON(w, r, resp.Error(err.Error()))
 			return
 		}
