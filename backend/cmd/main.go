@@ -79,14 +79,13 @@ func main() {
 		router.Use(jwtauth.Authenticator(tokenAuth))
 
 		router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
-		router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
 		router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
 		router.Delete("/api/statement/{id}", handlers.DeleteStatement(log, orderUseCase))
 	})
 	router.Handle("/metrics", promhttp.Handler())
 	
 	router.Post("/api/auth/login", handlers.Login(log, tokenAuth))
-	
+	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
 	
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))
 
