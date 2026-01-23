@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 
-export default function BarChart({ data }) {
+export default function BarChart({ data, theme }) {
     const ALL_MONTHS = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
@@ -44,8 +44,25 @@ export default function BarChart({ data }) {
         return keys[idx] >= from && keys[idx] <= to;
     });
 
+    const colors = {
+        light: {
+            background: "#FFFFFF",
+            text: "#000000",
+            grid: "#CCCCCC",
+            bar: "#87ABFE"
+        },
+        dark: {
+            background: "#1F1F2E",
+            text: "#E0E0E0",
+            grid: "#555555",
+            bar: "#BB86FC"
+        }
+    };
+    const current = theme ? colors.dark : colors.light;
+
     return (
-        <>
+        <div className="chart-area">
+            <h1 className='sidebar__title'>Проблемы по месяцам</h1>
             <div className="chart-area">
                 <Bar
                     data={{
@@ -53,12 +70,29 @@ export default function BarChart({ data }) {
                         datasets: [{
                             label: "Количество",
                             data: filteredValues,
-                            backgroundColor: "#87ABFE"
+                            backgroundColor: current.bar
                         }]
                     }}
                     options={{
                         responsive: true,
-                        maintainAspectRatio: false
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: current.text
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: current.text },
+                                grid: { color: current.grid }
+                            },
+                            y: {
+                                ticks: { color: current.text },
+                                grid: { color: current.grid }
+                            }
+                        }
                     }}
                 />
             </div>
@@ -74,6 +108,6 @@ export default function BarChart({ data }) {
                     <input className="charts__date" type="month" value={to} onChange={e => setTo(e.target.value)} />
                 </label>
             </div>
-        </>
+        </div>
     );
 }

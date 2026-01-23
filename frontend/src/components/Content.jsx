@@ -2,16 +2,16 @@ import BarChart from "./Charts/BarChart"
 import DonutChart from "./Charts/DonutChart"
 import LineChart from "./Charts/LineChart"
 
-export default function Content({ categoriesData, districtData, periodData, selectedDistrict, setSelectedDistrict }) {
+export default function Content({ categoriesData, districtData, periodData, selectedDistrict, setSelectedDistrict, rec, themeIsBlack }) {
 
     return (
         <>
             <div className='charts wrapper'>
                 <div className='charts__chart card-a'>
-                    <BarChart data={periodData} />
+                    <BarChart data={periodData} theme={themeIsBlack}/>
                 </div>
                 <div className='charts__chart card-b'>
-                    <DonutChart data={categoriesData} />
+                    <DonutChart data={categoriesData} theme={themeIsBlack}/>
                     <div className="charts__description">
                         <select
                             className='charts__donut-btn'
@@ -42,18 +42,18 @@ export default function Content({ categoriesData, districtData, periodData, sele
                     </div>
                 </div>
                 <div className='charts__chart card-e'>
-                    <LineChart data={districtData} />
+                    <LineChart data={districtData} theme={themeIsBlack}/>
                 </div>
                 <div className='charts__chart card-c'>
-                    <div className="chart-area">
+                    <div className="chart-area recom-area">
                         <h1 className="sidebar__title">Рекомендация</h1>
-                        <p></p>
+                        <p className="sidebar__text">{rec[0]}</p>
                     </div>
                 </div>
                 <div className='charts__chart card-d'>
-                    <div className="chart-area">
+                    <div className="chart-area recom-area">
                         <h1 className="sidebar__title">Рекомендация</h1>
-                        <p></p>
+                        <p className="sidebar__text">{rec[1]}</p>
                     </div>
                 </div>
             </div>

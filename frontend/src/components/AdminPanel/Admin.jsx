@@ -1,23 +1,52 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import check from '../../assets/check.svg'
+import cross from '../../assets/cross.svg'
 
 export default function Admin() {
-    const [tasks, setTasks] = useState([
-        { id: 1, title: "Заявка #1", description: "Описание задачи 1" },
-        { id: 2, title: "Заявка #2", description: "Описание задачи 2" },
-        { id: 3, title: "Заявка #3", description: "Описание задачи 3" },
-    ]);
+    const [tasks, setTasks] = useState([])
+    useEffect(() => {
+        fetch('api/statement')
+            .then(r => r.json())
+            .then(setTasks)
+            .catch(console.error)
+    }, [])
+    async function handleAccept(task) {
+            try {
+                const response = await fetch(`/api/statement/${task.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify([{
+                    id: task.id,
+                    source: task.source,
+                    district: task.district,
+                    category: task.category,
+                    subcategory: task.subcategory,
+                    created_at: task.created_at,
+                    status: task.status,
+                    description: task.description,
+                    status_admin: false,
+                }]),
+            });
 
-    const handleAccept = (id) => {
-        alert(`Принято: задача ${id}`);
-        setTasks(tasks.filter((task) => task.id !== id));
-    };
+            if (!response.ok) {
+            throw new Error('Ошибка обновления');
+            }
 
-    const handleReject = (id) => {
-        alert(`Отклонено: задача ${id}`);
-        setTasks(tasks.filter((task) => task.id !== id));
-    };
+            const data = await response.json();
+            console.log('Обновлено:', data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
+    async function handleReject(id) {
+        await fetch(`/api/statement/${id}`, {
+            method: "DELETE",
+        })
+    }
+    
     const handleImport = (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -33,7 +62,6 @@ export default function Admin() {
         };
         reader.readAsText(file);
     };
-
     return (
         <div className="task-panel">
             <div className="task-panel__header">
@@ -45,29 +73,44 @@ export default function Admin() {
             </div>
 
             <div className="task-panel__list">
-                {tasks.length === 0 && <p className="task-panel__empty">Нет заявок</p>}
-                {tasks.map((task) => (
-                    <div className="task-panel__task" key={task.id}>
-                        <div className="task-panel__info">
-                            <h3>{task.title}</h3>
-                            <p>{task.description}</p>
+                {(!tasks || tasks.length === 0) ? (
+                    <p className="task-panel__empty">Нет заявок</p>
+                ) : (
+                    tasks.map((task) => (
+                        
+                        <div className="task-panel__task" key={task.id}>
+                            <div className="task-panel__info">
+                                <h3 className="task-panel__title">{`${task.category} | ${task.district}`}</h3>
+                                <p>{task.description}</p>
+                                <p>{task.subcategory}</p>
+                                <p>{task.created_at}</p>
+                            </div>
+                            <div className="task-panel__actions">
+                                <button
+                                    className="task-panel__accept"
+                                    onClick={async() => {
+                                        await handleAccept(task)
+                                        location.reload();
+                                    }}
+                                >
+                                    <img src={check} alt="принять" />
+                                </button>
+                                <button
+                                    className="task-panel__reject"
+                                    onClick={async () => {
+                                        await handleReject(task.id);
+                                        location.reload();
+                                    }}
+                                >
+                                    <img src={cross} alt="отклонить" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="task-panel__actions">
-                            <button
-                                className="task-panel__accept"
-                                onClick={() => handleAccept(task.id)}
-                            >
-                                v
-                            </button>
-                            <button
-                                className="task-panel__reject"
-                                onClick={() => handleReject(task.id)}
-                            >
-                                x
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    ))
+                )}
+
+
+                
             </div>
         </div>
     );

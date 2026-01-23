@@ -6,19 +6,18 @@ import email from '../assets/email.svg'
 import phone from '../assets/phone.svg'
 import tg from '../assets/tg.svg'
 import logo from '../assets/icon.svg'
-import Admin from './AdminPanel/Admin';
 import RequestModal from './Modal/RequestModal'
 
 export default function App() {
     const [mapOpen, setMapOpen] = useState(false)
+    const [themeIsBlack, setThemeIsBlack] = useState(false)
     const [requestOpen, setRequestOpen] = useState(false)
 
     const [selectedDistrict, setSelectedDistrict] = useState('1');
     const [categoriesData, setCategoriesData] = useState({});
     const [districtData, setDistrictData] = useState({})
     const [periodData, setPeriodData] = useState({})
-
-    const [adminOpen, setAdminOpen] = useState(false);
+    const [rec, setRec] = useState({})
 
     const [open, setOpen] = useState(false)
 
@@ -35,6 +34,10 @@ export default function App() {
             .then(res => res.json())
             .then(data => setCategoriesData(data))
             .catch(console.error);
+        fetch(`api/analitic/recs?c=2`)
+            .then(res => res.json())
+            .then(rec => setRec(rec))
+            .catch(console.error);
     }, [])
     useEffect(() => {
         fetch(`api/analitic/categories/${selectedDistrict}`)
@@ -42,6 +45,15 @@ export default function App() {
             .then(data => setCategoriesData(data))
             .catch(console.error);
     }, [selectedDistrict]);
+
+    useEffect(() => {
+        if (themeIsBlack) {
+            document.body.setAttribute('data-theme', 'dark');
+        } else {
+            document.body.removeAttribute('data-theme');
+        }
+    }, [themeIsBlack]);
+
     return (
         <div className="content">
             <button class="burger" onClick={() => {
@@ -60,14 +72,17 @@ export default function App() {
                     onClick={() => setMapOpen(!mapOpen)}>
                     {mapOpen && 'Статистика' || 'Карта происшествий'}
                 </div>
+
                 <div className='sidebar__btn'
                     onClick={() => {
                         setRequestOpen(true)
                         if (open === true) setOpen(false)
                     }}
                 >Оставить заявку</div>
-                <div className='sidebar__btn' onClick={() => setAdminOpen(true)}>
-                    Админ панель
+
+                <div className='sidebar__btn'
+                    onClick={() => setThemeIsBlack(!themeIsBlack)}>
+                    {themeIsBlack &&  'Светлая тема' || 'Темная тема'}
                 </div>
 
                 <div className="sidebar__contacts">
@@ -93,7 +108,6 @@ export default function App() {
                     onClose={() => setRequestOpen(false)}
                 />
             )}
-            {adminOpen && <Admin onClose={() => setAdminOpen(false)} />}
 
             {mapOpen ? <MapComponent /> : <Content
                 categoriesData={categoriesData}
@@ -101,6 +115,8 @@ export default function App() {
                 periodData={periodData}
                 selectedDistrict={selectedDistrict}
                 setSelectedDistrict={setSelectedDistrict}
+                rec={rec}
+                themeIsBlack={themeIsBlack}
             />}
             <ToastContainer />
         </div>
