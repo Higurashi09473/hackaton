@@ -71,8 +71,8 @@ func (s *Storage) NewStatement(statements []models.Statement) error {
 	}
 	defer tx.Rollback()
 	for _, stmt := range statements {
-		if stmt.CreatedAt == ""{
-			stmt.CreatedAt = time.Now().Format("2006-01-02")	
+		if stmt.CreatedAt == "" {
+			stmt.CreatedAt = time.Now().Format("2006-01-02")
 		}
 		// Вставляем запись
 		_, err = tx.ExecContext(ctx, `
@@ -213,6 +213,53 @@ func (s *Storage) UpdateStatement(ctx context.Context, statements []models.State
 	}
 
 	return nil
+}
+
+func (s *Storage) GetRecomendatonsContext(ctx context.Context) ([]models.Statement, error) {
+	const op = "storage.postgres.GetRecomendatonsContext"
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT 
+		id,
+		source,
+		district,
+		category,
+		subcategory,
+		created_at,
+		status,
+		description
+		FROM statements
+		WHERE admin_status = false
+		ORDER BY created_at DESC
+		LIMIT 100
+		`,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []models.Statement{}, fmt.Errorf("%s: statements not found", op)
+		}
+		return []models.Statement{}, fmt.Errorf("%s: query: %w", op, err)
+	}
+
+	var statements []models.Statement
+	for rows.Next() {
+		var stmt models.Statement
+		err := rows.Scan(&stmt.StatementUID,
+			&stmt.Source,
+			&stmt.District,
+			&stmt.Category,
+			&stmt.Subcategory,
+			&stmt.CreatedAt,
+			&stmt.Status,
+			&stmt.Description,
+		)
+		if err != nil {
+			return []models.Statement{}, fmt.Errorf("%s: statements not found", op)
+		}
+		statements = append(statements, stmt)
+	}
+
+	return statements, nil
 }
 
 func (s *Storage) GetAllNewStatements(ctx context.Context) ([]models.Statement, error) {
