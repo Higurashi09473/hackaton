@@ -212,7 +212,7 @@ func (s *Storage) UpdateStatement(ctx context.Context, statements []models.State
 	return nil
 }
 
-func (s *Storage) GetAllStatements(ctx context.Context) ([]models.Statement, error) {
+func (s *Storage) GetAllNewStatements(ctx context.Context) ([]models.Statement, error) {
 	const op = "storage.postgres.GetStatement"
 
 	rows, err := s.db.QueryContext(ctx, `
@@ -225,7 +225,8 @@ func (s *Storage) GetAllStatements(ctx context.Context) ([]models.Statement, err
 		created_at,
 		status,
 		description
-		FROM statements`,
+		FROM statements
+		WHERE admin_status = true`,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

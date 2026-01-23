@@ -75,7 +75,7 @@ func main() {
 	router.Handle("/metrics", promhttp.Handler())
 
 	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
-	router.Get("/api/statement", handlers.GetAllStatements(log, orderUseCase))
+	router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
 
 	router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))

@@ -140,7 +140,7 @@ func DeleteStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCas
 	}
 }
 
-func GetAllStatements(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
+func GetAllNewStatements(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.statement.GetAllStatements"
 
@@ -151,7 +151,7 @@ func GetAllStatements(log *slog.Logger, statementUseCase *usecase.StatementUseCa
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		statements, err := statementUseCase.GetAllStatements(context.Background())
+		statements, err := statementUseCase.GetAllNewStatements(context.Background())
 		if err != nil {
 			log.Error("failed to unmarshal statement", "op", op, "error", err)
 			render.JSON(w, r, resp.Error(err.Error()))
@@ -247,16 +247,18 @@ func GetRecomendations(log *slog.Logger, statementUseCase *usecase.StatementUseC
 		if err != nil {
 			log.Error("failed convert count query param", "op", op, "error", err)
 			render.JSON(w, r, resp.Error(err.Error()))
+			return
 		}
 
 		recomendations, err := statementUseCase.GetRecomendations(context.Background(), count)
 		if err != nil {
-			log.Error("failed to  statement", "op", op, "error", err)
+			log.Error("failed to get recomendations", "op", op, "error", err)
 			render.JSON(w, r, resp.Error(err.Error()))
 			return
 		}
 
 		log.Info("recomendations getting success")
+
 		render.JSON(w, r, recomendations)
 	}
 }

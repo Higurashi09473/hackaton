@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +21,7 @@ type StatementRepository interface {
 	GetStatement(statementID int) (models.Statement, error)
 	DeleteStatement(statementID int) error
 	UpdateStatement(ctx context.Context, statements []models.Statement) error
-	GetAllStatements(ctx context.Context) ([]models.Statement, error)
+	GetAllNewStatements(ctx context.Context) ([]models.Statement, error)
 
 	GetCategoriesAnalitic(ctx context.Context, district string) (map[string]int, error)
 	GetDistrictAnalitic(ctx context.Context) (map[string]int, error)
@@ -138,10 +137,10 @@ func (uc *StatementUseCase) DeleteStatement(ctx context.Context, statementUID in
 	return nil
 }
 
-func (uc *StatementUseCase) GetAllStatements(ctx context.Context) ([]models.Statement, error) {
+func (uc *StatementUseCase) GetAllNewStatements(ctx context.Context) ([]models.Statement, error) {
 	const op = "usecase.GetStatement"
 
-	statements, err := uc.statementRepo.GetAllStatements(ctx)
+	statements, err := uc.statementRepo.GetAllNewStatements(ctx)
 	if err != nil {
 		return []models.Statement{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
 	}
@@ -184,16 +183,14 @@ func (uc *StatementUseCase) GetPeriodAnalitic(ctx context.Context) (map[string]i
 
 func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([]string, error) {
 	const op = "usecase.GetRecomendations"
-	client := mistral.NewClient(os.Getenv("ZB1vHqLdFHyUNIHGYRVscnZKgpmJKvUT"))
+	client := mistral.NewClient("")
 
 	resp, err := client.CreateChatCompletion(ctx, &mistral.ChatCompletionRequest{
-		Model: "devstral-latest",
+		Model: "devstral-2512",
 		Messages: []mistral.ChatMessage{
 			{Role: mistral.RoleUser, Content: "Hello!"},
 		},
 	})
-
-	fmt.Println()
 
 	if err != nil {
 		return []string{}, fmt.Errorf("%s: failed get recomendations: %w", op, err)
