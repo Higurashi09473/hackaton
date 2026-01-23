@@ -43,7 +43,6 @@ func main() {
 	statementRepo := postgres.MustLoad(log, db, cfg.MigrationsPath)
 
 	redisConn := redis.MustLoad(log, cfg.Redis.Host, cfg.Redis.Port, cfg.Redis.Password, cfg.DB)
-
 	kafkaProducer := kafka.MustProducer(log, cfg.Brokers, cfg.Topic)
 
 	orderUseCase := usecase.NewStatementUseCase(statementRepo, redisConn, kafkaProducer)
@@ -77,13 +76,15 @@ func main() {
 
 	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
 	router.Get("/api/statement", handlers.GetAllStatements(log, orderUseCase))
+
 	router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))
+	router.Delete("/api/statement/{id}", handlers.DeleteStatement(log, orderUseCase))
 
 	router.Get("/api/analitic/categories/{district}", handlers.GetCategoriesAnalitic(log, orderUseCase))
 	router.Get("/api/analitic/period", handlers.GetPeriodAnalitic(log, orderUseCase))
 	router.Get("/api/analitic/district", handlers.GetDistrictAnalitic(log, orderUseCase))
-
+	router.Get("/api/analitic/recs", handlers.GetRecomendations(log, orderUseCase))
 
 	srv := &http.Server{
 		Addr:         cfg.Address,

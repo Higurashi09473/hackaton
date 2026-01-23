@@ -111,6 +111,35 @@ func UpdateStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCas
 	}
 }
 
+func DeleteStatement(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const op = "handlers.statement.DeleteStatement"
+
+		log := log.With(
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
+
+		//error track
+		statementUID := chi.URLParam(r, "id")
+		if statementUID == "" {
+			http.Error(w, "id parameter missing", http.StatusBadRequest)
+			return
+		}
+		key, _ := strconv.Atoi(statementUID)
+
+		err := statementUseCase.DeleteStatement(context.Background(), key)
+		if err != nil {
+			log.Error("failed to delete statement", "op", op, "error", err)
+			render.JSON(w, r, resp.Error(err.Error()))
+			return
+		}
+
+		log.Info("statement delete success")
+		render.JSON(w, r, resp.OK())
+	}
+}
+
 func GetAllStatements(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.statement.GetAllStatements"
@@ -200,5 +229,34 @@ func GetPeriodAnalitic(log *slog.Logger, statementUseCase *usecase.StatementUseC
 
 		log.Info("statement getting success")
 		render.JSON(w, r, analitic)
+	}
+}
+
+func GetRecomendations(log *slog.Logger, statementUseCase *usecase.StatementUseCase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const op = "handlers.analitic.GetRecomendations"
+
+		log := log.With(
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
+
+		query := r.URL.Query().Get("c")
+		count, err := strconv.Atoi(query)
+
+		if err != nil {
+			log.Error("failed convert count query param", "op", op, "error", err)
+			render.JSON(w, r, resp.Error(err.Error()))
+		}
+
+		recomendations, err := statementUseCase.GetRecomendations(context.Background(), count)
+		if err != nil {
+			log.Error("failed to  statement", "op", op, "error", err)
+			render.JSON(w, r, resp.Error(err.Error()))
+			return
+		}
+
+		log.Info("recomendations getting success")
+		render.JSON(w, r, recomendations)
 	}
 }

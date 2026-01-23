@@ -9,6 +9,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/redis/go-redis/v9 v9.17.2
+	github.com/ua1984/mistral v1.0.0
 	golang.org/x/sync v0.19.0
 )
 
