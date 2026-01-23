@@ -22,7 +22,9 @@ type StatementRepository interface {
 	GetStatement(statementID int) (models.Statement, error)
 	DeleteStatement(statementID int) error
 	UpdateStatement(ctx context.Context, statements []models.Statement) error
-	GetAllStatements(ctx context.Context) ([]models.Statement, error)
+
+	GetAllNewStatements(ctx context.Context) ([]models.Statement, error)
+	GetRecomendatonsContext(ctx context.Context) ([]models.Statement, error)
 
 	GetCategoriesAnalitic(ctx context.Context, district string) (map[string]int, error)
 	GetDistrictAnalitic(ctx context.Context) (map[string]int, error)
@@ -134,14 +136,15 @@ func (uc *StatementUseCase) DeleteStatement(ctx context.Context, statementUID in
 	if err := uc.statementRepo.DeleteStatement(statementUID); err != nil {
 		return fmt.Errorf("%s: failed to delete statement (id=%d): %w", op, statementUID, err)
 	}
+	uc.cacheRepo.DeleteStatement(ctx, statementUID)
 
 	return nil
 }
 
-func (uc *StatementUseCase) GetAllStatements(ctx context.Context) ([]models.Statement, error) {
+func (uc *StatementUseCase) GetAllNewStatements(ctx context.Context) ([]models.Statement, error) {
 	const op = "usecase.GetStatement"
 
-	statements, err := uc.statementRepo.GetAllStatements(ctx)
+	statements, err := uc.statementRepo.GetAllNewStatements(ctx)
 	if err != nil {
 		return []models.Statement{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
 	}
@@ -182,18 +185,62 @@ func (uc *StatementUseCase) GetPeriodAnalitic(ctx context.Context) (map[string]i
 	return analitic, nil
 }
 
+func GeneratePrompt(numRecommendations int, statements []models.Statement) string {
+	var contextBuilder strings.Builder
+	for _, stmt := range statements {
+		contextBuilder.WriteString(fmt.Sprintf(
+			"- Район: %s, Категория: %s/%s\n",
+			stmt.District,
+			stmt.Category,
+			stmt.Subcategory,
+		))
+	}
+
+	prompt := fmt.Sprintf(`Ты — городской аналитик. На основе предоставленных данных о проблемах города сформируй краткие практические рекомендации для жителей.
+
+Контекст (последние заявки от жителей):
+%s
+
+Инструкции:
+1. Проанализируй ВСЕ предоставленные заявки и выяви основные проблемы
+2. Сгенери ровно %d рекомендаций для жителей на основе текущей ситуации
+3. Каждая рекомендация должна быть:
+   - Практической и конкретной
+   - Не более 5 предложений
+   - Основана на реальных проблемах из контекста
+4. Формат вывода: каждая рекомендация отделяется символом "|"
+5. Не включай номера, заголовки или дополнительные комментарии
+
+Рекомендации:`, contextBuilder.String(), numRecommendations)
+
+	return prompt
+}
+
 func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([]string, error) {
 	const op = "usecase.GetRecomendations"
-	client := mistral.NewClient(os.Getenv("ZB1vHqLdFHyUNIHGYRVscnZKgpmJKvUT"))
+	client := mistral.NewClient(os.Getenv("AI_API_KEY"))
+
+	result := []string{}
+
+	cached, err := uc.cacheRepo.GetStatement(ctx, -1)
+	if err == nil && len(cached) > 0 {
+		if jsonErr := json.Unmarshal(cached, &result); jsonErr == nil {
+			return result, nil
+		}
+		uc.cacheRepo.DeleteStatement(ctx, -1)
+	}
+
+	statementsContext, err := uc.statementRepo.GetRecomendatonsContext(ctx)
+	if err != nil {
+		return []string{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)
+	}
 
 	resp, err := client.CreateChatCompletion(ctx, &mistral.ChatCompletionRequest{
 		Model: "devstral-latest",
 		Messages: []mistral.ChatMessage{
-			{Role: mistral.RoleUser, Content: "Hello!"},
+			{Role: mistral.RoleUser, Content: GeneratePrompt(count, statementsContext)},
 		},
 	})
-
-	fmt.Println()
 
 	if err != nil {
 		return []string{}, fmt.Errorf("%s: failed get recomendations: %w", op, err)
@@ -209,9 +256,12 @@ func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([
 		return []string{}, nil
 	}
 
-	result := strings.Split(responseText, "|")
+	result = strings.Split(responseText, "|")
 	for i := range result {
 		result[i] = strings.TrimSpace(result[i])
+	}
+	if orderJSON, marshalErr := json.Marshal(result); marshalErr == nil {
+		uc.cacheRepo.SetStatement(ctx, -1, orderJSON, 1*time.Hour)
 	}
 
 	return result, nil
