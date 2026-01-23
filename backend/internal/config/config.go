@@ -16,6 +16,7 @@ type Config struct {
 	Env            string `yaml:"env" env-default:"local"`
 	StoragePath    string `yaml:"storage_path" env-required:"true"`
 	MigrationsPath string `yaml:"migrations_path"`
+	JWTSecret      string `yaml:"jwt_secret"`
 	HTTPServer     `yaml:"http_server"`
 	Postgresql     `yaml:"postgresql"`
 	Redis          `yaml:"redis"`
@@ -58,7 +59,7 @@ type Kafka struct {
 // MustLoad loads configuration from YAML file and environment variables.
 // It panics if the config file is missing or cannot be read.
 func MustLoad() *Config {
-	configPath := "./configs/local.yaml" 
+	configPath := "./configs/local.yaml"
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH is not set")
 	}
@@ -79,5 +80,5 @@ func MustLoad() *Config {
 // DSN returns PostgreSQL connection string in the format required by pgx/driver.
 func (p Postgresql) DSN() string {
 	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s host=%s port=%d",
-        p.User, p.Password, p.DBname, p.SSLmode, p.Host, p.Port)
+		p.User, p.Password, p.DBname, p.SSLmode, p.Host, p.Port)
 }

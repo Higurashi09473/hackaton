@@ -32,7 +32,7 @@ export default function LoginModal({onClose}) {
             .then(data => {
                 if (data.status === "OK") {
                     onClose()
-                    window.location.reload(false);
+                    window.location.reload()
                 }
             })
             .catch(err => {

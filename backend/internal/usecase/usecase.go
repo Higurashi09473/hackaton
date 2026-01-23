@@ -229,7 +229,6 @@ func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([
 		}
 		uc.cacheRepo.DeleteStatement(ctx, -1)
 	}
-
 	statementsContext, err := uc.statementRepo.GetRecomendatonsContext(ctx)
 	if err != nil {
 		return []string{}, fmt.Errorf("%s: orderRepo get order: %w", op, err)

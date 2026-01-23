@@ -24,12 +24,15 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
 )
 
 func main() {
 	cfg := config.MustLoad()
+
+	tokenAuth := jwtauth.New("HS256", []byte(cfg.JWTSecret), nil)
 
 	log := slogpretty.SetupLogger(cfg.Env)
 	log.Info("starting server", slog.String("env", cfg.Env))
@@ -71,15 +74,21 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+	router.Group(func(router chi.Router) {
+		router.Use(jwtauth.Verifier(tokenAuth))
+		router.Use(jwtauth.Authenticator(tokenAuth))
 
+		router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
+		router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
+		router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
+		router.Delete("/api/statement/{id}", handlers.DeleteStatement(log, orderUseCase))
+	})
 	router.Handle("/metrics", promhttp.Handler())
-
-	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
-	router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
-
-	router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
+	
+	router.Post("/api/auth/login", handlers.Login(log, tokenAuth))
+	
+	
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))
-	router.Delete("/api/statement/{id}", handlers.DeleteStatement(log, orderUseCase))
 
 	router.Get("/api/analitic/categories/{district}", handlers.GetCategoriesAnalitic(log, orderUseCase))
 	router.Get("/api/analitic/period", handlers.GetPeriodAnalitic(log, orderUseCase))

@@ -1,6 +1,7 @@
 env: "local" #local, dev, prod
 storage_path: "./storage/storage.db"
 migrations_path: "./migration"
+jwt_secret: "2be886fca5d72a511a6d927318c12769"
 
 http_server:
   address: "0.0.0.0:8888"

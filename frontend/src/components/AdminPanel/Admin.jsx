@@ -5,18 +5,17 @@ import LoginModal from '../Modal/LoginModal'
 
 export default function Admin() {
     const [showReg, setShowReg] = useState(false)
-
+    const [error, setError] = useState(false)
     const [tasks, setTasks] = useState([])
     useEffect(() => {
         fetch('api/statement')
-            .then(r => {
-                if (r.status > 200) {
-                    setShowReg(true)
-                }
-            })
             .then(r => r.json())
             .then(setTasks)
-            .catch(console.error)
+            .catch((error) => {
+                console.log(error)
+                setShowReg(true)
+            }
+            )
     }, [])
     async function handleAccept(task) {
             try {
