@@ -43,7 +43,6 @@ func main() {
 	statementRepo := postgres.MustLoad(log, db, cfg.MigrationsPath)
 
 	redisConn := redis.MustLoad(log, cfg.Redis.Host, cfg.Redis.Port, cfg.Redis.Password, cfg.DB)
-
 	kafkaProducer := kafka.MustProducer(log, cfg.Brokers, cfg.Topic)
 
 	orderUseCase := usecase.NewStatementUseCase(statementRepo, redisConn, kafkaProducer)

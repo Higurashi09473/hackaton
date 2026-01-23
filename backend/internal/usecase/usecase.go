@@ -27,7 +27,6 @@ type StatementRepository interface {
 	GetCategoriesAnalitic(ctx context.Context, district string) (map[string]int, error)
 	GetDistrictAnalitic(ctx context.Context) (map[string]int, error)
 	GetPeriodAnalitic(ctx context.Context) (map[string]int, error)
-	GetRecomendations(ctx context.Context, count int) ([]string, error)
 }
 
 type CacheRepository interface {
@@ -185,7 +184,7 @@ func (uc *StatementUseCase) GetPeriodAnalitic(ctx context.Context) (map[string]i
 
 func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([]string, error) {
 	const op = "usecase.GetRecomendations"
-	client := mistral.NewClient(os.Getenv(""))
+	client := mistral.NewClient(os.Getenv("ZB1vHqLdFHyUNIHGYRVscnZKgpmJKvUT"))
 
 	resp, err := client.CreateChatCompletion(ctx, &mistral.ChatCompletionRequest{
 		Model: "devstral-latest",
@@ -193,6 +192,8 @@ func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([
 			{Role: mistral.RoleUser, Content: "Hello!"},
 		},
 	})
+
+	fmt.Println()
 
 	if err != nil {
 		return []string{}, fmt.Errorf("%s: failed get recomendations: %w", op, err)
