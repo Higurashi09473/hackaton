@@ -10,7 +10,7 @@ export default function Map({ onMapReady }) {  // Добавили prop для �
     useEffect(() => {
         const map = new maptilersdk.Map({
             container: "map",
-            style: maptilersdk.MapStyle.DATAVIZ.LIGHT,
+            style: maptilersdk.MapStyle.HYBRID,
             center: [30.3609, 59.9311],
             zoom: 10,
         });
