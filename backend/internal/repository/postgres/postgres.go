@@ -71,6 +71,9 @@ func (s *Storage) NewStatement(statements []models.Statement) error {
 	}
 	defer tx.Rollback()
 	for _, stmt := range statements {
+		if stmt.CreatedAt == ""{
+			stmt.CreatedAt = time.Now().Format("2006-01-02")	
+		}
 		// Вставляем запись
 		_, err = tx.ExecContext(ctx, `
 		INSERT INTO statements (
