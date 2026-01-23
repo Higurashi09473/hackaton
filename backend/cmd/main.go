@@ -67,7 +67,7 @@ func main() {
 	// router.Use(middleware.URLFormat)
 
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://0.0.0.0:*", "https://xn----etbdfash4aeavd9h.xn--p1ai"},
+		AllowedOrigins:   []string{"http://localhost:5173", "http://0.0.0.0:*", "https://xn----etbdfash4aeavd9h.xn--p1ai", "https://xn--b1afb6bcb.xn----etbdfash4aeavd9h.xn--p1ai"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
