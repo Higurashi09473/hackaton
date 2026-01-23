@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -216,7 +217,7 @@ func GeneratePrompt(numRecommendations int, statements []models.Statement) strin
 
 func (uc *StatementUseCase) GetRecomendations(ctx context.Context, count int) ([]string, error) {
 	const op = "usecase.GetRecomendations"
-	client := mistral.NewClient("")
+	client := mistral.NewClient(os.Getenv("AI_API_KEY"))
 
 	statementsContext, err := uc.statementRepo.GetRecomendatonsContext(ctx)
 	if err != nil {
