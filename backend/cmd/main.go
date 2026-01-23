@@ -78,7 +78,6 @@ func main() {
 		router.Use(jwtauth.Verifier(tokenAuth))
 		router.Use(jwtauth.Authenticator(tokenAuth))
 
-		router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
 		router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
 		router.Delete("/api/statement/{id}", handlers.DeleteStatement(log, orderUseCase))
 	})
@@ -87,6 +86,7 @@ func main() {
 	router.Post("/api/auth/login", handlers.Login(log, tokenAuth))
 	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
 	
+	router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))
 
 	router.Get("/api/analitic/categories/{district}", handlers.GetCategoriesAnalitic(log, orderUseCase))
