@@ -67,7 +67,7 @@ func main() {
 	// router.Use(middleware.URLFormat)
 
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://0.0.0.0:*"},
+		AllowedOrigins:   []string{"http://localhost:5173", "http://0.0.0.0:*", "https://xn----etbdfash4aeavd9h.xn--p1ai", "https://xn--b1afb6bcb.xn----etbdfash4aeavd9h.xn--p1ai"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -78,16 +78,15 @@ func main() {
 		router.Use(jwtauth.Verifier(tokenAuth))
 		router.Use(jwtauth.Authenticator(tokenAuth))
 
-		router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
-		router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
 		router.Patch("/api/statement/{id}", handlers.UpdateStatement(log, orderUseCase))
 		router.Delete("/api/statement/{id}", handlers.DeleteStatement(log, orderUseCase))
 	})
 	router.Handle("/metrics", promhttp.Handler())
 	
 	router.Post("/api/auth/login", handlers.Login(log, tokenAuth))
+	router.Post("/api/statement", handlers.NewStatement(log, orderUseCase))
 	
-	
+	router.Get("/api/statement", handlers.GetAllNewStatements(log, orderUseCase))
 	router.Get("/api/statement/{id}", handlers.GetStatement(log, orderUseCase))
 
 	router.Get("/api/analitic/categories/{district}", handlers.GetCategoriesAnalitic(log, orderUseCase))
